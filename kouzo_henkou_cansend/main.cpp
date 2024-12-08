@@ -20,7 +20,11 @@ float targetVoltage = 3.5;      // 初期値として3.5Vを設定
 const float maxVoltage = 5.0;   // 最大電圧
 const float minVoltage = 0.0;   // 最小電圧
 
-const int PIN_SYASYUTU = 5;  // 
+const int PIN_SYASYUTU_PWM = 4;  // 射出のPWM
+const int PIN_SYASYUTU_1 = 16;
+const int PIN_SYASYUTU_2 = 21;
+
+int syasyutu_condition = 0;
 int dutyCycle = calculateDutyCycle(targetVoltage, maxVoltage, minVoltage);
 //Max=255とした計算
 
@@ -28,7 +32,7 @@ extern Servo soutenServo; // 変数は外部で定義されていると宣言
 int souten_servoPin = 13;  // サーボの接続ピンを指定（適宜変更）
 
 Servo gyoukakuServo; // 変数は外部で定義されていると宣言
-int gyoukaku_servoPin = 12;  // 仰角用サーボの接続ピンを指定（適宜変更）
+int gyoukaku_servoPin = 5;  // 仰角用サーボの接続ピンを指定（適宜変更）
 //int currentAngle = 0;        // サーボの初期角度
 
 int Ashimawari_Command=0;//コマンド
@@ -36,6 +40,12 @@ int Ashimawari_Command=0;//コマンド
   
 // setup関数: 初期設定を行う。CANバスの初期化と、送受信の設定を呼び出す
 void setup() {
+  //ピン設定 
+  pinMode(souten_servoPin,OUTPUT);
+  pinMode(gyoukaku_servoPin,OUTPUT);
+  //pinMode(PIN_SYASYUTU_PWM,OUTPUT);
+  pinMode(PIN_SYASYUTU_1,OUTPUT);
+  pinMode(PIN_SYASYUTU_2,OUTPUT);
   //シリアル通信、PS4準備
   Serial.begin(115200);  // シリアル通信開始
   PS4.begin("1c:69:20:e6:20:d2");//ここにアドレス
@@ -66,14 +76,25 @@ void loop() {
 if (PS4.isConnected()) {
     if (PS4.Circle()){//発射
       Serial.println("Circle Button");      //Serial.print("PWM_syasyutu!");
-      analogWrite(PIN_SYASYUTU, dutyCycle );//回転時間ってどんくらいですか？Dutyサイクルは先に回っています
-      delay(40);
-      digitalWrite(PIN_SYASYUTU,LOW);
+      if(syasyutu_condition==0){
+        syasyutu_condition=1;
+      }else{
+        syasyutu_condition=0;  
+      }
+      if(syasyutu_condition==0){
+        analogWrite(PIN_SYASYUTU_PWM, 0 );//回転時間ってどんくらいですか？Dutyサイクルは先に回っています
+        digitalWrite(PIN_SYASYUTU_1,HIGH);
+        digitalWrite(PIN_SYASYUTU_2,LOW);
+      }else{
+        analogWrite(PIN_SYASYUTU_PWM, dutyCycle );//回転時間ってどんくらいですか？Dutyサイクルは先に回っています
+        digitalWrite(PIN_SYASYUTU_1,HIGH);
+        digitalWrite(PIN_SYASYUTU_2,LOW);
+      }
     }
     if (PS4.Triangle()) {//装填
       Serial.println("Triangle Button");//Debug  Serial.println("装填開始");
       Souten();
-      digitalWrite(PIN_SYASYUTU,LOW);
+      //digitalWrite(PIN_SYASYUTU,LOW);
       Serial.println("装填終了");
       }
     if (PS4.R1()){
