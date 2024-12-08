@@ -17,7 +17,7 @@
 // 目標電圧（ここに外部からの値が設定される）
 float targetVoltage = 3.5;      // 初期値として3.5Vを設定
 // 電圧範囲
-const float maxVoltage = 5.0;   // 最大電圧
+const float maxVoltage = 8.0;   // 最大電圧
 const float minVoltage = 0.0;   // 最小電圧
 
 const int PIN_SYASYUTU_PWM = 4;  // 射出のPWM
@@ -63,6 +63,15 @@ const int CAN_RX_PIN = 26;  // 受信ピン（GPIO26）
     Serial.println("CANの初期化に失敗しました！"); // CAN初期化に失敗した場合、エラーメッセージを表示して停止
     while (1);  // 永久ループで停止
   }
+
+   //サーボピン初期設定
+  gyoukakuServo.attach(gyoukaku_servoPin);  // サーボピンを設定
+  gyoukakuServo.write(25);  // 初期位置を25度（中央）に設定
+
+  //サーボピン初期設定
+  soutenServo.attach(souten_servoPin);  // サーボピンを設定
+  soutenServo.write(20);  // 初期位置を20度（中央）に設定
+  
 
   // 受信と送信の初期化関数を呼び出し
   //setupReceiver();
